@@ -1,58 +1,22 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+##Sherazi POS Optimization Summary
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+##solve করা হয়েছে
+.N+1 Query সমস্যা রোধ: with() মেথড ব্যবহার করে পণ্যের ক্যাটেগরি, অর্ডারের কাস্টমার ও আইটেম সম্পর্কগুলো আগে থেকেই লোড করা হয়েছে। এতে প্রতিটি রেকর্ডের জন্য আলাদা কুয়েরি চালানো লাগে না।
 
-## About Laravel
+.Redis ক্যাশিং সংযোজন: /api/products এবং /api/products/dashboard এন্ডপয়েন্টে 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+.Cache::remember ব্যবহার করে ডেটা ক্যাশে সংরক্ষণ করা হয়েছে। নতুন প্রোডাক্ট বা অর্ডার তৈরি হলে Cache::forget দিয়ে ক্যাশ ইনভ্যালিড করা হয়।
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+.slow কুয়েরি অপ্টিমাইজ: Product::all()->count()-এর মতো slow process বদলে সরাসরি Product::count() ও Order::sum('total_amount') ব্যবহার করা হয়েছে;
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+.ডাটাবেস ইনডেক্স: products.name, products.sold_count এবং orders.status কলামে ইনডেক্স যোগ করার মাইগ্রেশন ফাইল তৈরি করা হয়েছে। Laravel ডকুমেন্টেশনে দেখানো হয়েছে যে $table->index('column') কলামের জন্য ইনডেক্স তৈরি করে এবং কুয়েরির গতি বাড়ায়।
 
-## Learning Laravel
+.DB ট্রানজাকশন ও SQL Injection রোধ: অর্ডার তৈরি করার প্রক্রিয়াটি DB::transaction() এর ভিতরে রাখা হয়েছে, যাতে কোনো ত্রুটি হলে সম্পূর্ণ রোলব্যাক হয়। filterByStatus এন্ডপয়েন্টে কাঁচা SQL-এর পরিবর্তে Order::where('status', $status)->get() ব্যবহার করা হয়েছে।
+কেন এসব করা হয়েছে
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+.পারফরম্যান্স বৃদ্ধি: Eager loading ও ইনডেক্সের ফলে ডাটাবেসের কুয়েরি সংখ্যা ও সময় কমেছে, ফলে API দ্রুত কাজ করে।
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+.স্কেলেবিলিটি: ক্যাশিং ও ইনডেক্স যুক্ত করার মাধ্যমে বেশি ডেটা ও টেকসই ট্র্যাফিক সাপোর্ট করার ক্ষমতা বৃদ্ধি পেয়েছে।
+নিরাপত্তা: SQL ইনজেকশন ঝুঁকি কমেছে এবং ট্রানজাকশনের ফলে আংশিক ডেটা সংরক্ষণের সমস্যা সমাধান হয়েছে।
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+.স্বচ্ছ API: Pagination ও API Resource ব্যবহার করার প্রস্তাবনা মাধ্যমে ভবিষ্যতে response structure আরও মানসম্মত করা সম্ভব।
